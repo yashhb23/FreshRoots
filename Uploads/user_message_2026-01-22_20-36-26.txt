@@ -1,0 +1,88 @@
+You are acting as a senior system architect and full‑stack engineer. Your task is to design and ultimately build a production‑grade mobile-first marketplace called "Fresh Roots" (initial Android focus) that lists fresh vegetables and goods. Before writing any code, complete a full system design and development plan that answers the items below. Do not produce implementation code until the complete design and plan are finalized.
+
+Context / source assets
+Facebook page to use as initial catalog/listing source: https://www.facebook.com/profile.php?id=61582787822940 (use this only to seed initial listings / import workflow).
+Single admin user initially (admin is the only person allowed to create listings).
+Target geography: Mauritius (integrate local payment option "Juice" / MCB if feasible) and cash-on-delivery option.
+Target device for MVP testing: Android phone (Samsung J7 Prime). Developer prefers Expo/React Native for rapid iteration and web preview. Also wants iPhone testing options if possible.
+Timeline: working prototype in ~1 month (deliverable list / milestone plan required).
+High-level functional requirements
+Listings
+Admin-only creation/editing of product listings (vegetables, fresh food items).
+Each listing: title, description, images, price, unit (kg/pack), stock/availability, location, tags, Facebook post association (optional).
+Ability to import/seed listings from the Facebook page and to optionally sync updates (investigate Graph API feasibility and constraints).
+Buyer flows (two options)
+Express interest: user marks "Interested" and may send a message to the seller/admin; this triggers an alert for admin to follow up.
+Purchase request: user pays (or initiates payment) and a purchase request is created — admin receives an alert and decides next action (approve, cancel, request pickup/delivery details).
+Payment options: integrate local "Juice" banking app (MCB) OR let user choose Cash (on delivery) at checkout. Investigate Juice API availability and recommended approach if direct integration isn’t possible (e.g., deep link, bank redirect, or third‑party aggregator).
+Admin notifications via email and push, and in‑app admin dashboard for order management.
+Notifications & alerts
+Real‑time in‑app notifications + push for buyer & admin events.
+Email alerting for admin (order requests, low stock, errors).
+Audit trail of admin decisions on each purchase request (who, when, action).
+Analytics
+Integrate analytics; compare Mixpanel vs PostHog for this product (explain tradeoffs and recommend one).
+Track events: listing views, expresses of interest, add-to-cart, purchase requests, payments, admin decisions, conversion funnels, retention.
+Deployable app strategy
+Rapid dev: Expo React Native app with web preview for live iteration; produce APK for Android testing and Play Store later.
+Provide instructions and automation for generating signed APKs (and later AAB) and web preview.
+iPhone testing: describe Expo/TestFlight path for iOS testing and constraints.
+Deliverables required (before any code)
+Complete recommended tech stack with justification (front-end, backend, DB, caching, messaging, push, file storage, analytics, CI/CD, monitoring).
+Detailed system architecture diagram and component responsibilities.
+Database schema (tables/collections, relationships) covering users, listings, orders/purchase requests, inventory, notifications, admin actions/audit log, analytics events.
+Authentication & authorization strategy (admin-only content creation, secure user sessions).
+Payment integration plan (Juice/MCB investigation + fallback options like Stripe/MercadoPago/local PSPs) and PCI/data handling approach.
+Facebook integration plan: how to import/sync listings from the given Facebook page (Graph API endpoints, necessary permissions, rate limits, fallback if API not possible).
+Notification & alert architecture (push provider, email provider, in‑app real‑time updates).
+Analytics evaluation: side‑by‑side comparison Mixpanel vs PostHog focused on:
+Data ownership, cost, event volume, ease of tracking cross-platform (mobile + web), offline/event buffering, growth to millions of users, GDPR/PDPA implications.
+Recommendation for which to use (or to run both in parallel for rollout) and how to implement events schema.
+UI/UX high-level spec: navigation, key screens (home/listings, product detail, cart/checkout, express interest flow, purchase request flow, admin dashboard order flows), responsive behaviors.
+Performance, scalability, reliability & security plan:
+Expected scale and how to scale components (DB read/ write patterns, caching, CDN for images).
+Observability (logging, metrics, error tracking), SLOs and SLA guidance.
+Security: authentication, data encryption, safe handling of payment data, rate limiting, bot/abuse protection.
+Testing strategy: unit, E2E, device testing (real device/emulator), QA plan.
+CI/CD and deployment recommendations with example pipelines.
+Cost estimate for initial 12 months (infrastructure + 3rd party fees for analytics, push, payments).
+Week-by-week milestone plan for 1-month prototype, with acceptance criteria for each milestone.
+Risks, open questions, and required items from you (developer) to proceed (e.g., Juice API credentials, Facebook page admin access, MCB contact, test bank account, branding assets).
+Non-functional requirements & constraints
+Mobile-first, offline-tolerant UX for intermittent network (basic caching, optimistic UI for expresses of interest).
+Must support millions of users in the long term; prototype must be built with scalable components.
+Data privacy: comply with local data protection rules; minimize storage of payment details (use PSP/redirect where possible).
+Single admin user initially (system must allow adding more admins later).
+Images must be stored on a performant CDN; support multiple images per listing and efficient resizing for mobile.
+Milestones & timeline (example for 1 month prototype)
+Week 0 (planning): finalize design, tech stack, schema, and integration feasibility (Juice, Facebook). Deliver: architecture doc + milestone plan.
+Week 1: backend models & API spec, database schema, authentication, admin CRUD for listings, FB import prototype. Deliver: API docs, DB schema, demo import logs.
+Week 2: mobile app (Expo) browsing, product detail, express interest flow + in‑app messaging to admin (or message form), basic analytics events wired. Deliver: Expo app preview (web + Expo Go).
+Week 3: purchase request flow, payment integration stub (Juice investigation + payment option UI), admin order dashboard, notifications (push + email). Deliver: working purchase request flow (sandbox).
+Week 4: polish, automated builds (APK generation), QA, performance baseline, handover docs. Deliver: signed APK, deployment guidance, runbook, and final design doc.
+Acceptance criteria for prototype
+Admin can create/edit listings and import from the Facebook page.
+Users can browse listings, mark interest (message), and submit a purchase request (with payment flow stub or real payment integration if possible).
+Admin receives email and push notifications for purchase requests and can record decisions in dashboard with audit logs.
+Expo web preview works; Android testing via Expo Go works on the J7 Prime; a signed APK can be produced for install.
+Analytics events (core funnel) are captured and demo dashboards exist.
+Documentation: architecture, DB schema, deployment and build steps, and next steps roadmap.
+Research requests for you (DeepAgent)
+Please investigate and include concrete findings (with sources where appropriate):
+
+Feasibility and integration method for Juice / MCB payment API in Mauritius (public docs, contact points, recommended integration: API, SDK, deep links, or bank redirect).
+Facebook Graph API approach to import/sync product listings from the given Facebook page (required permissions, scraping rules, rate limits).
+Comparison Mixpanel vs PostHog with respect to cost at scale, event ingestion limits, privacy/data ownership, suitability for mobile marketplace with expected event volumes; recommend one or propose running both (short pros/cons).
+Recommended push provider (FCM vs alternatives) and email provider (SendGrid, Mailgun, or local provider), with costs and pros/cons.
+CDN / image optimization approach and costs.
+Short market analysis for an on‑demand fresh produce marketplace in Mauritius (demand signals, competitors, logistic considerations, potential go‑to‑market recommendations).
+Expected deliverables to hand over to me
+One‑page executive summary and architecture diagram.
+Full design doc (tech stack, DB schema, API spec, analytics plan, payment plan).
+UI wireframes (key screens).
+Working Expo project preview + instructions to test on Android Expo Go and to generate signed APK.
+Admin dashboard (web or mobile) for order management.
+Deployment & CI/CD pipeline templates and cost estimate.
+Risk register and next‑phase roadmap.
+You must act like a professional system designer. Do not generate any code until the entire development plan and architecture is finalized. After system design is complete, implementation should begin one module at a time, starting with time tracking and session logging.
+so now wwith this prompt , create it for me

@@ -1,0 +1,46 @@
+# Root gitignore for FreshRoots monorepo (Windows + Node + React Native + Nest + Prisma)
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+
+# Node
+**/node_modules/
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# Env files (never commit secrets)
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.template
+
+# Build outputs
+**/dist/
+**/build/
+**/.next/
+**/.expo/
+**/.turbo/
+
+# React Native
+**/android/.gradle/
+**/android/app/build/
+**/android/.idea/
+**/ios/Pods/
+**/ios/build/
+**/*.keystore
+**/*.jks
+
+# Prisma
+**/prisma/dev.db
+
+# Coverage
+**/coverage/
+
+# Misc
+*.apk
+*.aab

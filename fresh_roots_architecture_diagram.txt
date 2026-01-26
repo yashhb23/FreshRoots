@@ -1,0 +1,491 @@
+═══════════════════════════════════════════════════════════════════════════════════
+                     FRESH ROOTS MARKETPLACE - SYSTEM ARCHITECTURE
+                                   Version 1.0
+═══════════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              CLIENT LAYER                                       │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌────────────────────────────────┐    ┌─────────────────────────────────┐   │
+│  │  React Native Mobile App       │    │  Admin Web Dashboard (Future)   │   │
+│  │  (Expo Framework)              │    │  (React/Next.js)                │   │
+│  │  - Android (Primary - J7 Prime)│    │  - Order Management             │   │
+│  │  - iOS (TestFlight - Future)   │    │  - Listing Management           │   │
+│  │                                │    │  - Analytics Dashboard          │   │
+│  │  Features:                     │    │  - Audit Logs                   │   │
+│  │  • Home/Browse Listings        │    └─────────────────────────────────┘   │
+│  │  • Search & Filters            │                      │                    │
+│  │  • Product Details             │                      │                    │
+│  │  • Express Interest Flow       │                      │                    │
+│  │  • Purchase Request Flow       │                      │                    │
+│  │  • My Orders                   │                      │                    │
+│  │  • Push Notifications          │                      │                    │
+│  │  • Offline Caching             │                      │                    │
+│  │                                │                      │                    │
+│  │  State: Redux Toolkit          │                      │                    │
+│  │  Navigation: React Navigation  │                      │                    │
+│  │  UI: React Native Paper        │                      │                    │
+│  └────────────────────────────────┘                      │                    │
+│                  │                                        │                    │
+└──────────────────┼────────────────────────────────────────┼────────────────────┘
+                   │                                        │
+                   │ HTTPS/TLS (443)                        │
+                   │                                        │
+┌──────────────────┴────────────────────────────────────────┴────────────────────┐
+│                          API GATEWAY / LOAD BALANCER                           │
+│                     (NGINX / AWS ALB / Cloud Load Balancer)                    │
+│  • SSL/TLS Termination                                                         │
+│  • Rate Limiting & Throttling                                                  │
+│  • Request Routing                                                             │
+│  • CORS Configuration                                                          │
+└────────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      │
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           APPLICATION LAYER                                     │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌─────────────────────────────────────────────────────────────────────────┐  │
+│  │                   Node.js API Server (NestJS)                           │  │
+│  │                                                                         │  │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌───────────┐ │  │
+│  │  │ Auth Module  │  │  Listings    │  │    Orders    │  │   Admin   │ │  │
+│  │  │              │  │   Module     │  │    Module    │  │  Module   │ │  │
+│  │  │ • Register   │  │              │  │              │  │           │ │  │
+│  │  │ • Login/JWT  │  │ • Browse     │  │ • Express    │  │ • Approve │ │  │
+│  │  │ • Refresh    │  │ • Search     │  │   Interest   │  │ • Reject  │ │  │
+│  │  │ • OAuth      │  │ • Filter     │  │ • Purchase   │  │ • Logs    │ │  │
+│  │  │   (Future)   │  │ • Detail     │  │   Request    │  │ • Create  │ │  │
+│  │  └──────────────┘  │ • Admin CRUD │  │ • Status     │  │   Listing │ │  │
+│  │                    │              │  │   Tracking   │  │           │ │  │
+│  │                    └──────────────┘  └──────────────┘  └───────────┘ │  │
+│  │                                                                         │  │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌───────────┐ │  │
+│  │  │   Payment    │  │  Facebook    │  │ Notification │  │ Analytics │ │  │
+│  │  │   Module     │  │    Module    │  │   Module     │  │  Module   │ │  │
+│  │  │              │  │              │  │              │  │           │ │  │
+│  │  │ • Initiate   │  │ • Import     │  │ • Push       │  │ • Track   │ │  │
+│  │  │ • Callback   │  │   Listings   │  │ • Email      │  │   Events  │ │  │
+│  │  │ • Verify     │  │ • Sync       │  │ • In-app     │  │ • User    │ │  │
+│  │  │ • COD        │  │   Products   │  │              │  │   Props   │ │  │
+│  │  └──────────────┘  │ • Parse Feed │  └──────────────┘  └───────────┘ │  │
+│  │                    └──────────────┘                                    │  │
+│  │                                                                         │  │
+│  │  Middleware: JWT Auth, Logging (Winston), Error Handling (Sentry)      │  │
+│  └─────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+        │              │              │              │              │
+        │              │              │              │              │
+┌───────▼──────┐ ┌─────▼──────┐ ┌────▼──────┐ ┌────▼──────┐ ┌─────▼────────┐
+│              │ │            │ │           │ │           │ │              │
+│  PostgreSQL  │ │   Redis    │ │  Payment  │ │ Facebook  │ │  Push/Email  │
+│   Database   │ │   Cache    │ │  Gateway  │ │ Graph API │ │  Services    │
+│              │ │            │ │           │ │           │ │              │
+└──────────────┘ └────────────┘ └───────────┘ └───────────┘ └──────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+                           DATA LAYER & EXTERNAL SERVICES
+═══════════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                            PRIMARY DATABASE                                     │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  PostgreSQL 15+                                                                 │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │  Core Tables:                                                            │  │
+│  │  • users (id, email, password_hash, phone, name, role, created_at, ...)│  │
+│  │  • listings (id, title, description, price, unit, stock, category, ...) │  │
+│  │  • listing_images (id, listing_id FK, image_url, order)                 │  │
+│  │  • orders (id, user_id FK, status, payment_method, total_amount, ...)   │  │
+│  │  • order_items (id, order_id FK, listing_id FK, quantity, price, ...)   │  │
+│  │  • interest_expressions (id, user_id FK, listing_id FK, message, ...)   │  │
+│  │  • admin_actions (id, admin_id FK, order_id FK, action, notes, ...)     │  │
+│  │  • notifications (id, user_id FK, type, title, message, read, ...)      │  │
+│  │                                                                            │  │
+│  │  Indexes: user_id, listing_id, order_id, created_at, status fields      │  │
+│  │  Constraints: Foreign Keys, NOT NULL, UNIQUE constraints                 │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                          CACHING & REAL-TIME LAYER                              │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  Redis 7+                                                                       │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │  Use Cases:                                                              │  │
+│  │  • API Response Caching (listings, product details) - TTL: 5-15 min     │  │
+│  │  • Session Storage (JWT refresh tokens)                                 │  │
+│  │  • Real-time Pub/Sub (admin dashboard updates)                          │  │
+│  │  • Rate Limiting Counters                                               │  │
+│  │  • Temporary Data (OTP, verification codes)                             │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                      FILE STORAGE & CDN                                         │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  Phase 1 (MVP): Cloudinary                                                     │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │  • Direct Upload from Admin Interface                                   │  │
+│  │  • Automatic Image Optimization (WebP, AVIF)                            │  │
+│  │  • Responsive Breakpoints (thumbnail, medium, large)                    │  │
+│  │  • CDN Distribution for Fast Delivery                                   │  │
+│  │  • Free Tier: 25 credits/month (sufficient for MVP)                     │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                 │
+│  Phase 2 (Scale): AWS S3 + CloudFront + Lambda@Edge                            │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │  • S3 Bucket for Raw Image Storage                                      │  │
+│  │  • CloudFront for Global CDN                                            │  │
+│  │  • Lambda@Edge for On-the-Fly Transformations                           │  │
+│  │  • Cost Savings: ~60-85% at scale (1TB+ bandwidth)                      │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                       PAYMENT INTEGRATION                                       │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  Primary: Payment Aggregator (MIPS / Paywise)                                  │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │  Payment Methods:                                                        │  │
+│  │  • MCB Juice (via deep link / bank redirect)                            │  │
+│  │  • My.T Money                                                            │  │
+│  │  • Credit/Debit Cards (Visa, Mastercard)                                │  │
+│  │  • Cash on Delivery (COD)                                               │  │
+│  │                                                                            │  │
+│  │  Flow:                                                                   │  │
+│  │  1. User selects payment method                                         │  │
+│  │  2. Backend initiates payment request with aggregator                   │  │
+│  │  3. User redirected to payment gateway / deep link to Juice             │  │
+│  │  4. User completes payment                                              │  │
+│  │  5. Payment gateway sends webhook callback                              │  │
+│  │  6. Backend verifies payment and updates order status                   │  │
+│  │                                                                            │  │
+│  │  Security: PCI DSS compliance via gateway (SAQ-A)                       │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                 │
+│  Future: Stripe (requires US LLC setup)                                        │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                     FACEBOOK GRAPH API INTEGRATION                              │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  Purpose: Import/Sync product listings from Facebook Page                      │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │  Process:                                                                │  │
+│  │  1. Admin grants Page Access Token (pages_read_engagement permission)   │  │
+│  │  2. Backend fetches Page Feed (GET /{page-id}/feed)                     │  │
+│  │  3. Parse posts for product info (name, description, price, images)     │  │
+│  │  4. Create draft listings in database                                   │  │
+│  │  5. Admin reviews and publishes listings from dashboard                 │  │
+│  │                                                                            │  │
+│  │  Rate Limits: BUC rate limit = 20,000 + 20,000 * log2(users) per hour  │  │
+│  │  Fallback: Manual listing creation via admin dashboard                  │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                        NOTIFICATION SERVICES                                    │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  Push Notifications:                                                            │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │  Phase 1 (MVP): Expo Push Notifications                                 │  │
+│  │  • Zero configuration for Expo Go testing                               │  │
+│  │  • Simple API for sending notifications                                 │  │
+│  │  • Free tier                                                             │  │
+│  │                                                                            │  │
+│  │  Phase 2 (Growth): OneSignal                                             │  │
+│  │  • Advanced segmentation & targeting                                    │  │
+│  │  • A/B testing for notifications                                        │  │
+│  │  • Rich media notifications                                             │  │
+│  │  • Marketing campaign management                                        │  │
+│  │  • Cost: $39/month for 10K users, $309/month for 100K users             │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                 │
+│  Email Service:                                                                 │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │  Primary: AWS SES                                                        │  │
+│  │  • Cost: $0.10 per 1,000 emails                                         │  │
+│  │  • Free tier: 62,000 emails/month (if hosted on AWS EC2)                │  │
+│  │  • High deliverability with proper DKIM/SPF setup                       │  │
+│  │  • Use cases: Order confirmations, admin alerts, OTP, receipts          │  │
+│  │                                                                            │  │
+│  │  Alternative: Mailgun (if faster setup needed)                          │  │
+│  │  • Cost: $0.80 per 1,000 emails                                         │  │
+│  │  • Developer-friendly API                                               │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                 │
+│  In-App Notifications:                                                          │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │  • Stored in PostgreSQL `notifications` table                           │  │
+│  │  • Fetched on app launch and displayed in notification center           │  │
+│  │  • Real-time updates via WebSocket (Socket.io) for admin dashboard      │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                        ANALYTICS PLATFORM                                       │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  Recommended: PostHog                                                           │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │  Advantages:                                                             │  │
+│  │  • All-in-one: Analytics + A/B Testing + Session Replay + Feature Flags │  │
+│  │  • Self-hosting option for complete data ownership                      │  │
+│  │  • 80% cheaper than Mixpanel for anonymous events                       │  │
+│  │  • Free tier: 1M events/month + 5K session recordings                   │  │
+│  │                                                                            │  │
+│  │  Key Events to Track:                                                   │  │
+│  │  • listing_viewed (listing_id, category)                                │  │
+│  │  • listing_search (query, results_count)                                │  │
+│  │  • interest_expressed (listing_id, user_id)                             │  │
+│  │  • purchase_initiated (listing_id, user_id, payment_method)             │  │
+│  │  • payment_completed (order_id, amount, payment_method)                 │  │
+│  │  • order_approved (order_id, admin_id)                                  │  │
+│  │  • order_rejected (order_id, admin_id, reason)                          │  │
+│  │  • app_opened, screen_viewed, button_clicked                            │  │
+│  │                                                                            │  │
+│  │  Implementation: PostHog React Native SDK                               │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                  MONITORING & OBSERVABILITY                                     │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  Error Tracking: Sentry                                                         │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │  • Real-time error and exception tracking                               │  │
+│  │  • Frontend (React Native) + Backend (Node.js) integration              │  │
+│  │  • Detailed stack traces with context                                   │  │
+│  │  • Release tracking and alerting                                        │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                 │
+│  Logging: Winston (Backend)                                                    │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │  • Structured JSON logging                                              │  │
+│  │  • Log levels: error, warn, info, debug                                 │  │
+│  │  • Output to console + file + cloud (AWS CloudWatch / ELK)              │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                 │
+│  Infrastructure Monitoring: Cloud Provider Tools                               │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │  • AWS CloudWatch / Google Cloud Monitoring                             │  │
+│  │  • CPU, Memory, Network, Disk I/O metrics                               │  │
+│  │  • Database connection pool monitoring                                  │  │
+│  │  • Custom metrics: API response times, error rates                      │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+                           CI/CD PIPELINE (GitHub Actions)
+═══════════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  Backend Workflow (on push to main)                                            │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │  1. Checkout code                                                        │  │
+│  │  2. Install dependencies (npm install)                                   │  │
+│  │  3. Run linting (ESLint)                                                 │  │
+│  │  4. Run unit tests (Jest)                                                │  │
+│  │  5. Build Docker image                                                   │  │
+│  │  6. Push to container registry (Docker Hub / AWS ECR)                    │  │
+│  │  7. Deploy to hosting (AWS ECS / Google Cloud Run / DigitalOcean)        │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                 │
+│  Mobile App Workflow (on tag/release)                                          │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │  1. Checkout code                                                        │  │
+│  │  2. Install dependencies (npm install)                                   │  │
+│  │  3. Run linting (ESLint)                                                 │  │
+│  │  4. Run unit tests (Jest)                                                │  │
+│  │  5. Build Android APK/AAB using EAS Build                                │  │
+│  │  6. Upload to internal testing (Google Play Internal Track)              │  │
+│  │  7. (Future) Build iOS IPA using EAS Build                               │  │
+│  │  8. (Future) Upload to TestFlight                                        │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+                             SECURITY MEASURES
+═══════════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  Authentication & Authorization                                                │
+│  • JWT tokens with access + refresh token pattern                              │
+│  • bcrypt password hashing (10 salt rounds minimum)                            │
+│  • Role-based access control (RBAC): admin vs. user                            │
+│  • Secure HTTP-only cookies for web (refresh tokens)                           │
+│  • OAuth 2.0 for social login (Google, Facebook - future)                      │
+│                                                                                 │
+│  Data Protection                                                                │
+│  • All communication over HTTPS/TLS                                            │
+│  • Database encryption at rest                                                 │
+│  • Sensitive fields (passwords) never logged                                   │
+│  • PCI DSS compliance via payment aggregator (no card storage)                 │
+│  • Data Protection Act 2017 compliance (Mauritius GDPR equivalent)             │
+│                                                                                 │
+│  API Security                                                                   │
+│  • Rate limiting: 100 requests/15 minutes per IP (adjustable)                  │
+│  • CORS whitelist for allowed origins                                          │
+│  • Input validation & sanitization (class-validator, DOMPurify)                │
+│  • SQL injection prevention via ORM (TypeORM parameterized queries)            │
+│  • XSS protection via output encoding                                          │
+│  • CSRF protection for state-changing operations                               │
+│  • API request/response size limits                                            │
+│                                                                                 │
+│  Infrastructure Security                                                        │
+│  • Private subnets for database and Redis                                      │
+│  • Security groups / firewall rules                                            │
+│  • Regular dependency updates (npm audit, Dependabot)                          │
+│  • Secrets management (environment variables, AWS Secrets Manager)             │
+│  • Automated backups (database snapshots)                                      │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+                          DEPLOYMENT ARCHITECTURE
+═══════════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  Environment Strategy                                                           │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │  Development:                                                            │  │
+│  │  • Local development with Docker Compose                                │  │
+│  │  • PostgreSQL + Redis containers                                        │  │
+│  │  • Hot reload for rapid iteration                                       │  │
+│  │  • Expo Go for mobile testing                                           │  │
+│  │                                                                            │  │
+│  │  Staging:                                                                │  │
+│  │  • Mirrors production environment                                       │  │
+│  │  • Separate database and services                                       │  │
+│  │  • Used for integration testing and client demos                        │  │
+│  │  • TestFlight builds for iOS testing                                    │  │
+│  │                                                                            │  │
+│  │  Production:                                                             │  │
+│  │  • Fully managed cloud hosting (AWS/GCP/DigitalOcean)                   │  │
+│  │  • Auto-scaling enabled                                                 │  │
+│  │  • Database read replicas for scaling reads                             │  │
+│  │  • Multi-AZ deployment for high availability                            │  │
+│  │  • Signed APK/AAB for production distribution                           │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+                           DATA FLOW DIAGRAMS
+═══════════════════════════════════════════════════════════════════════════════════
+
+USER BROWSE & PURCHASE FLOW:
+────────────────────────────
+
+Mobile App                 API Server            PostgreSQL            Redis
+    │                          │                     │                   │
+    │  GET /api/listings       │                     │                   │
+    ├─────────────────────────>│                     │                   │
+    │                          │  Check Cache        │                   │
+    │                          ├────────────────────────────────────────>│
+    │                          │<─ Cache Miss ───────────────────────────┤
+    │                          │                     │                   │
+    │                          │  SELECT * FROM      │                   │
+    │                          │  listings...        │                   │
+    │                          ├────────────────────>│                   │
+    │                          │<─ Listings ─────────┤                   │
+    │                          │                     │                   │
+    │                          │  SET cache          │                   │
+    │                          ├────────────────────────────────────────>│
+    │                          │                     │                   │
+    │<─ Listings JSON ─────────┤                     │                   │
+    │                          │                     │                   │
+    │  (User selects item)     │                     │                   │
+    │                          │                     │                   │
+    │  POST /api/orders/       │                     │                   │
+    │  purchase-request        │                     │                   │
+    ├─────────────────────────>│                     │                   │
+    │                          │  INSERT INTO orders │                   │
+    │                          ├────────────────────>│                   │
+    │                          │<─ Order Created ────┤                   │
+    │                          │                     │                   │
+    │                          │  Trigger Notification                   │
+    │                          │  & Payment Flow     │                   │
+    │                          │                     │                   │
+    │<─ Order Confirmation ────┤                     │                   │
+    │                          │                     │                   │
+
+
+ADMIN APPROVAL FLOW:
+────────────────────
+
+Admin Dashboard           API Server            PostgreSQL          Notifications
+    │                          │                     │                   │
+    │  GET /api/admin/orders   │                     │                   │
+    ├─────────────────────────>│                     │                   │
+    │                          │  SELECT * FROM      │                   │
+    │                          │  orders WHERE       │                   │
+    │                          │  status='pending'   │                   │
+    │                          ├────────────────────>│                   │
+    │                          │<─ Pending Orders ───┤                   │
+    │<─ Orders List ───────────┤                     │                   │
+    │                          │                     │                   │
+    │  (Admin clicks Approve)  │                     │                   │
+    │                          │                     │                   │
+    │  PUT /api/admin/orders/  │                     │                   │
+    │  123/approve             │                     │                   │
+    ├─────────────────────────>│                     │                   │
+    │                          │  UPDATE orders      │                   │
+    │                          │  SET status=        │                   │
+    │                          │  'approved'         │                   │
+    │                          ├────────────────────>│                   │
+    │                          │                     │                   │
+    │                          │  INSERT INTO        │                   │
+    │                          │  admin_actions      │                   │
+    │                          ├────────────────────>│                   │
+    │                          │                     │                   │
+    │                          │  Send Push + Email  │                   │
+    │                          ├────────────────────────────────────────>│
+    │                          │                     │                   │
+    │<─ Success Response ──────┤                     │                   │
+    │                          │                     │                   │
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+                              SCALABILITY PLAN
+═══════════════════════════════════════════════════════════════════════════════════
+
+Phase 1: MVP (0-10K users)
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  • Single Node.js server instance                                              │
+│  • Single PostgreSQL instance (managed service)                                │
+│  • Single Redis instance                                                        │
+│  • Cloudinary for images                                                        │
+│  • Estimated cost: $50-100/month                                                │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+Phase 2: Growth (10K-100K users)
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  • Horizontal scaling: 2-3 Node.js instances behind load balancer              │
+│  • PostgreSQL with read replicas                                               │
+│  • Redis cluster for high availability                                         │
+│  • Migrate to AWS S3 + CloudFront for images                                   │
+│  • OneSignal for push notifications                                            │
+│  • Estimated cost: $300-600/month                                               │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+Phase 3: Scale (100K-1M+ users)
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  • Auto-scaling groups with 5-10+ Node.js instances                            │
+│  • Multi-region deployment for latency optimization                            │
+│  • Database sharding by region or user ID                                      │
+│  • Microservices architecture (separate services for orders, payments, etc.)   │
+│  • Self-hosted PostHog for analytics                                           │
+│  • Dedicated CDN with edge caching                                             │
+│  • Estimated cost: $2,000-5,000+/month                                          │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+                              END OF DIAGRAM
+═══════════════════════════════════════════════════════════════════════════════════

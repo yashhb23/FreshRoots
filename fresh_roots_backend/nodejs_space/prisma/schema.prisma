@@ -1,0 +1,259 @@
+// Fresh Roots Marketplace Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User roles
+enum Role {
+  admin
+  user
+}
+
+// Order status enum
+enum OrderStatus {
+  pending
+  payment_pending
+  payment_confirmed
+  approved
+  rejected
+  preparing
+  out_for_delivery
+  delivered
+  cancelled
+}
+
+// Payment method enum
+enum PaymentMethod {
+  juice
+  myt_money
+  card
+  cash_on_delivery
+}
+
+// Payment status
+enum PaymentStatus {
+  pending
+  completed
+  failed
+  refunded
+}
+
+// Interest expression status
+enum InterestStatus {
+  pending
+  contacted
+  closed
+}
+
+// Admin action types
+enum AdminActionType {
+  order_approved
+  order_rejected
+  order_status_updated
+  listing_created
+  listing_updated
+  listing_deleted
+  user_status_changed
+}
+
+// Notification types
+enum NotificationType {
+  order_status_update
+  payment_confirmation
+  admin_message
+  system_alert
+  promotional
+}
+
+model users {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password_hash String
+  phone         String?
+  name          String
+  role          Role     @default(user)
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  listings             listings[]
+  orders               orders[]
+  interest_expressions interest_expressions[]
+  admin_actions        admin_actions[]
+  notifications        notifications[]
+
+  @@index([email])
+  @@index([role])
+  @@index([created_at])
+}
+
+model categories {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+  created_at  DateTime @default(now())
+
+  // Relations
+  listings listings[]
+
+  @@index([slug])
+}
+
+model listings {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  price       Float
+  unit        String // kg, pack, piece, bunch
+  stock       Int      @default(0)
+  category_id String?
+  location    String?
+  tags        String[] @default([])
+  is_active   Boolean  @default(true)
+  admin_id    String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  admin                users                  @relation(fields: [admin_id], references: [id], onDelete: Restrict)
+  category             categories?            @relation(fields: [category_id], references: [id], onDelete: SetNull)
+  images               listing_images[]
+  order_items          order_items[]
+  interest_expressions interest_expressions[]
+
+  @@index([admin_id])
+  @@index([category_id])
+  @@index([is_active])
+  @@index([created_at])
+}
+
+model listing_images {
+  id         String   @id @default(uuid())
+  listing_id String
+  image_url  String
+  is_primary Boolean  @default(false)
+  order      Int      @default(0)
+  created_at DateTime @default(now())
+
+  // Relations
+  listing listings @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+
+  @@index([listing_id, order])
+}
+
+model interest_expressions {
+  id         String         @id @default(uuid())
+  user_id    String
+  listing_id String
+  message    String?
+  status     InterestStatus @default(pending)
+  created_at DateTime       @default(now())
+  updated_at DateTime       @updatedAt
+
+  // Relations
+  user    users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  listing listings @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([listing_id])
+  @@index([status, created_at])
+}
+
+model orders {
+  id             String        @id @default(uuid())
+  user_id        String
+  order_number   String        @unique
+  total_amount   Float
+  payment_method PaymentMethod
+  payment_status PaymentStatus @default(pending)
+  order_status   OrderStatus   @default(pending)
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
+
+  // Relations
+  user                 users                  @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  order_items          order_items[]
+  admin_actions        admin_actions[]
+  payment_transactions payment_transactions[]
+
+  @@index([user_id, created_at])
+  @@index([order_status, created_at])
+  @@index([order_number])
+}
+
+model order_items {
+  id         String   @id @default(uuid())
+  order_id   String
+  listing_id String
+  quantity   Int
+  unit_price Float
+  subtotal   Float
+  created_at DateTime @default(now())
+
+  // Relations
+  order   orders   @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  listing listings @relation(fields: [listing_id], references: [id], onDelete: Restrict)
+
+  @@index([order_id])
+  @@index([listing_id])
+}
+
+model admin_actions {
+  id          String          @id @default(uuid())
+  admin_id    String
+  order_id    String?
+  action_type AdminActionType
+  notes       String?
+  created_at  DateTime        @default(now())
+
+  // Relations
+  admin users   @relation(fields: [admin_id], references: [id], onDelete: Restrict)
+  order orders? @relation(fields: [order_id], references: [id], onDelete: SetNull)
+
+  @@index([admin_id, created_at])
+  @@index([action_type])
+}
+
+model notifications {
+  id         String           @id @default(uuid())
+  user_id    String
+  type       NotificationType
+  title      String
+  message    String
+  read       Boolean          @default(false)
+  created_at DateTime         @default(now())
+
+  // Relations
+  user users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, created_at])
+  @@index([user_id, read, created_at])
+}
+
+model payment_transactions {
+  id             String        @id @default(uuid())
+  order_id       String?
+  transaction_id String        @unique
+  amount         Float
+  currency       String        @default("MUR")
+  payment_method String
+  status         PaymentStatus @default(pending)
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
+
+  // Relations
+  order orders? @relation(fields: [order_id], references: [id], onDelete: SetNull)
+
+  @@index([transaction_id])
+  @@index([order_id])
+  @@index([status])
+}
