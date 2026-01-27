@@ -1,0 +1,14 @@
+# Nixpacks configuration for Railway deployment
+# This tells Railway exactly how to build and start the NestJS backend
+
+[phases.setup]
+nixPkgs = ["nodejs_18", "npm-9_x"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm run start:railway"
