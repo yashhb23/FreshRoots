@@ -194,12 +194,12 @@ export class AuthService {
     const payload = { sub: userId, email, role };
 
     const accessTokenOptions = {
-      secret: this.configService.get('JWT_SECRET') || 'fallback-secret',
+      secret: this.configService.get('JWT_SECRET') || 'rc137',
       expiresIn: this.configService.get('JWT_EXPIRES_IN') || '15m',
     };
 
     const refreshTokenOptions = {
-      secret: this.configService.get('JWT_REFRESH_SECRET') || 'fallback-refresh-secret',
+      secret: this.configService.get('JWT_REFRESH_SECRET') || 'rc137_refresh',
       expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN') || '30d',
     };
 
