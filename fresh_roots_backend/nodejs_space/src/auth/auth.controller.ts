@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { GoogleAuthDto } from './dto/google-auth.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../common/decorators/current-user.decorator';
@@ -46,6 +47,19 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
   async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
     const result = await this.authService.refreshToken(refreshTokenDto.refreshToken);
+    return {
+      success: true,
+      data: result,
+    };
+  }
+
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Authenticate with Google (Firebase)' })
+  @ApiResponse({ status: 200, description: 'Google authentication successful' })
+  @ApiResponse({ status: 401, description: 'Account disabled' })
+  async googleAuth(@Body() googleAuthDto: GoogleAuthDto) {
+    const result = await this.authService.googleAuth(googleAuthDto);
     return {
       success: true,
       data: result,
