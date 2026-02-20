@@ -3,45 +3,40 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install all dependencies (including devDependencies for build)
 RUN npm ci
 
-# Generate Prisma client
 RUN npx prisma generate
 
-# Copy source code
 COPY . .
 
-# Build the NestJS application
 RUN npm run build
+
+# Fail fast if the expected output doesn't exist
+RUN test -f dist/main.js || (echo "ERROR: dist/main.js not found" && ls -R dist/ && exit 1)
 
 # Production stage
 FROM node:18-alpine AS production
 
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install only production dependencies
-RUN npm ci --only=production
+# Install production deps only; skip postinstall since prisma CLI is a devDependency
+RUN npm ci --omit=dev --ignore-scripts
 
-# Generate Prisma client for production
-RUN npx prisma generate
+# Copy the generated Prisma client from the builder stage
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
-# Copy built application from builder stage
+# Copy the compiled NestJS application
 COPY --from=builder /app/dist ./dist
 
-# Expose port
 EXPOSE 3000
 
-# Set environment variable for production
 ENV NODE_ENV=production
 
-# Start the application
 CMD ["node", "dist/main"]
