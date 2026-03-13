@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MinLength, Matches, IsOptional } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength, Matches, IsOptional, IsIn } from 'class-validator';
 
 export class RegisterDto {
   @ApiProperty({ example: 'john@example.com' })
@@ -24,4 +24,9 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @ApiProperty({ example: 'buyer', required: false, enum: ['buyer', 'seller'] })
+  @IsOptional()
+  @IsIn(['buyer', 'seller'])
+  role?: 'buyer' | 'seller';
 }

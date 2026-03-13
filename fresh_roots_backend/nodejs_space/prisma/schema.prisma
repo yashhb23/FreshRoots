@@ -12,7 +12,8 @@ datasource db {
 // User roles
 enum Role {
   admin
-  user
+  buyer
+  seller
 }
 
 // Order status enum
@@ -77,7 +78,7 @@ model users {
   password_hash String
   phone         String?
   name          String
-  role          Role     @default(user)
+  role          Role     @default(buyer)
   is_active     Boolean  @default(true)
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt

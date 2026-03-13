@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "620749427733",
+    "project_id": "new-app-01-cb413",
+    "storage_bucket": "new-app-01-cb413.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:620749427733:android:cc260727fa9f92331caa1c",
+        "android_client_info": {
+          "package_name": "com.freshrootsmobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "620749427733-4o57rjkdd6kiv6kpq65io3i0aq478ed9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.freshrootsmobile",
+            "certificate_hash": "abccc359bb1532fa0b10dc11b8b6ec9eb78b0156"
+          }
+        },
+        {
+          "client_id": "620749427733-vifvcpiq7tk2qc93koppds2d64dm44lk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.freshrootsmobile",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "620749427733-07sm400f93cg4r8v69mgn0vde2281jc5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxtUXuh0QE7q1W00t9158LxkzxtTOcDyo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "620749427733-07sm400f93cg4r8v69mgn0vde2281jc5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
