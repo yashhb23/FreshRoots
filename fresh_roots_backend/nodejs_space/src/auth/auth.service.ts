@@ -275,6 +275,10 @@ export class AuthService {
         is_active: true,
         created_at: true,
         updated_at: true,
+        delivery_address: true,
+        delivery_district: true,
+        delivery_city: true,
+        delivery_postal_code: true,
       },
     });
 
@@ -283,6 +287,27 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  async updateLocation(userId: string, updateLocationDto: any) {
+    return this.prisma.users.update({
+      where: { id: userId },
+      data: {
+        delivery_address: updateLocationDto.delivery_address,
+        delivery_district: updateLocationDto.delivery_district,
+        delivery_city: updateLocationDto.delivery_city,
+        delivery_postal_code: updateLocationDto.delivery_postal_code,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        delivery_address: true,
+        delivery_district: true,
+        delivery_city: true,
+        delivery_postal_code: true,
+      },
+    });
   }
 
   private async generateTokens(userId: string, email: string, role: string) {

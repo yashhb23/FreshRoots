@@ -83,6 +83,12 @@ model users {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
+  // Delivery location
+  delivery_address     String?
+  delivery_district    String?
+  delivery_city        String?
+  delivery_postal_code String?
+
   // Relations
   listings             listings[]
   orders               orders[]

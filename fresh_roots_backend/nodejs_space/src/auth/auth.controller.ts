@@ -1,10 +1,11 @@
-import { Controller, Post, Body, Get, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Get, Patch, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { GoogleAuthDto } from './dto/google-auth.dto';
+import { UpdateLocationDto } from './dto/update-location.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../common/decorators/current-user.decorator';
@@ -74,6 +75,23 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getCurrentUser(@CurrentUser() user: JwtPayload) {
     const result = await this.authService.getCurrentUser(user.sub);
+    return {
+      success: true,
+      data: result,
+    };
+  }
+
+  @Patch('me/location')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update delivery location' })
+  @ApiResponse({ status: 200, description: 'Location updated successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async updateLocation(
+    @CurrentUser() user: JwtPayload,
+    @Body() updateLocationDto: UpdateLocationDto,
+  ) {
+    const result = await this.authService.updateLocation(user.sub, updateLocationDto);
     return {
       success: true,
       data: result,
