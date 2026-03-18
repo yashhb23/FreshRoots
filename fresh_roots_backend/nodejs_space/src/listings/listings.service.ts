@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { PostHogService } from '../analytics/posthog.service';
 import { CreateListingDto } from './dto/create-listing.dto';
 import { UpdateListingDto } from './dto/update-listing.dto';
 import { QueryListingsDto } from './dto/query-listings.dto';
@@ -8,7 +9,10 @@ import { QueryListingsDto } from './dto/query-listings.dto';
 export class ListingsService {
   private readonly logger = new Logger(ListingsService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private posthog: PostHogService,
+  ) {}
 
   async create(createListingDto: CreateListingDto, adminId: string) {
     const { imageUrls, ...listingData } = createListingDto;
@@ -99,6 +103,19 @@ export class ListingsService {
       }
     }
 
+    if (search) {
+      this.posthog.track('system', 'search_performed', {
+        query: search,
+        category: category || null,
+      });
+    }
+
+    if (minPrice !== undefined || maxPrice !== undefined || inStockOnly || sortBy) {
+      this.posthog.track('system', 'filter_applied', {
+        minPrice, maxPrice, inStockOnly: !!inStockOnly, sortBy: sortBy || null,
+      });
+    }
+
     const [listings, total] = await Promise.all([
       this.prisma.listings.findMany({
         where,
@@ -128,12 +145,14 @@ export class ListingsService {
     };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, userId?: string) {
     await this.prisma.listings.update({
       where: { id },
       data: { view_count: { increment: 1 } },
-    }).catch(() => {
-      // Listing might not exist yet; handled below
+    }).catch(() => {});
+
+    this.posthog.track(userId || 'anonymous', 'product_viewed', {
+      listing_id: id,
     });
 
     const listing = await this.prisma.listings.findUnique({
