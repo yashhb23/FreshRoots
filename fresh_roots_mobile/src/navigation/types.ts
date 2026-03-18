@@ -27,6 +27,7 @@ export type HomeStackParamList = {
   OrderSuccess: {orderId: string};
   Chat: {threadId: string};
   Messages: undefined;
+  EditAddress: undefined;
 };
 
 // Root Navigator

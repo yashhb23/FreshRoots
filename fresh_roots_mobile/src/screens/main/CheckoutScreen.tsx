@@ -107,8 +107,21 @@ const CheckoutScreen: React.FC<Props> = ({navigation}) => {
             <Text style={styles.infoName}>{user?.name || 'Guest'}</Text>
             <Text style={styles.infoText}>{user?.email}</Text>
             {user?.phone && <Text style={styles.infoText}>{user.phone}</Text>}
-            <TouchableOpacity style={styles.editButton}>
-              <Text style={styles.editText}>Edit</Text>
+            {user?.delivery_address ? (
+              <Text style={styles.infoText}>
+                {user.delivery_address}, {user.delivery_city}, {user.delivery_district}
+              </Text>
+            ) : (
+              <Text style={[styles.infoText, {color: colors.warning}]}>
+                No delivery address set
+              </Text>
+            )}
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => navigation.navigate('EditAddress')}>
+              <Text style={styles.editText}>
+                {user?.delivery_address ? 'Edit' : 'Add Address'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

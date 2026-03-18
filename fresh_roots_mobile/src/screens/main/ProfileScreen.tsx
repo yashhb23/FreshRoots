@@ -117,9 +117,20 @@ const ProfileScreen: React.FC = () => {
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('HomeTab', {screen: 'EditAddress'})}>
           <Text style={styles.menuIcon}>📍</Text>
-          <Text style={styles.menuText}>Delivery Address</Text>
+          <View style={{flex: 1}}>
+            <Text style={styles.menuText}>Delivery Address</Text>
+            {user?.delivery_address ? (
+              <Text style={styles.menuSubtext}>
+                {user.delivery_address}, {user.delivery_city}
+              </Text>
+            ) : (
+              <Text style={styles.menuSubtext}>Not set — tap to add</Text>
+            )}
+          </View>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
         
@@ -264,9 +275,13 @@ const createStyles = (colors: ReturnType<typeof getColors>) =>
     marginRight: spacing.md,
   },
   menuText: {
-    flex: 1,
     fontSize: 16,
     color: colors.text,
+  },
+  menuSubtext: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
   menuArrow: {
     fontSize: 20,

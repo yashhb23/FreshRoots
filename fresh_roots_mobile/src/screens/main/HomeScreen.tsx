@@ -23,6 +23,7 @@ import {useAuth} from '../../contexts/AuthContext';
 import ProductCard from '../../components/listing/ProductCard';
 import CategoryChip from '../../components/common/CategoryChip';
 import NetworkError from '../../components/common/NetworkErrorBoundary';
+import FiltersModal, {FilterValues} from '../../components/common/FiltersModal';
 import {useTheme} from '../../contexts/ThemeContext';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -47,16 +48,20 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
+  const [popularListings, setPopularListings] = useState<Listing[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState<FilterValues>({inStockOnly: false});
 
   useEffect(() => {
     fetchCategories();
+    fetchPopularListings();
   }, []);
 
   useEffect(() => {
     setPage(1);
     setHasMore(true);
     fetchListings(true);
-  }, [selectedCategory]);
+  }, [selectedCategory, filters]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -78,6 +83,21 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
     }
   };
 
+  const fetchPopularListings = async () => {
+    try {
+      const response = await listingsService.getListings({
+        page: 1,
+        limit: 6,
+        sortBy: 'popular',
+      });
+      if (response.success && response.data) {
+        setPopularListings(response.data.listings || []);
+      }
+    } catch (err) {
+      console.error('Error fetching popular listings:', err);
+    }
+  };
+
   const fetchListings = async (reset = false) => {
     if (!hasMore && !reset) return;
     try {
@@ -91,6 +111,10 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
         limit: 20,
         search: searchQuery || undefined,
         category: selectedCategory || undefined,
+        minPrice: filters.minPrice,
+        maxPrice: filters.maxPrice,
+        inStockOnly: filters.inStockOnly || undefined,
+        sortBy: filters.sortBy,
       });
       if (response.success && response.data) {
         const newListings = response.data.listings || [];
@@ -141,6 +165,10 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
     );
   };
 
+  const handleApplyFilters = (newFilters: FilterValues) => {
+    setFilters(newFilters);
+  };
+
   const userName = user?.name?.split(' ')[0] || 'Guest';
   const userInitial = userName.charAt(0).toUpperCase();
 
@@ -156,7 +184,9 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
               <Icon name="map-marker" size={14} color="rgba(255,255,255,0.8)" />
               {'  '}Delivery to
             </Text>
-            <Text style={styles.locationText}>Fresh Roots, Mauritius</Text>
+            <Text style={styles.locationText}>
+              {user?.delivery_city ? `${user.delivery_city}, Mauritius` : 'Fresh Roots, Mauritius'}
+            </Text>
           </View>
           <TouchableOpacity style={styles.avatar}>
             <Text style={styles.avatarText}>{userInitial}</Text>
@@ -175,7 +205,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-          <TouchableOpacity style={styles.filterBtn}>
+          <TouchableOpacity style={styles.filterBtn} onPress={() => setShowFilters(true)}>
             <Icon name="tune-variant" size={20} color={colors.textInverse} />
           </TouchableOpacity>
         </View>
@@ -229,12 +259,43 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
         contentContainerStyle={styles.categoriesContainer}
       />
 
-      {/* Popular Header */}
+      {/* Popular Section */}
+      {popularListings.length > 0 && (
+        <>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Popular</Text>
+            <TouchableOpacity onPress={() => {
+              setFilters(prev => ({...prev, sortBy: 'popular'}));
+            }}>
+              <Text style={styles.viewAll}>View all</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.popularContainer}>
+            {popularListings.map(item => (
+              <View key={item.id} style={styles.popularCardWrapper}>
+                <ProductCard
+                  listing={item}
+                  onPress={() => handleProductPress(item.id)}
+                />
+              </View>
+            ))}
+          </ScrollView>
+        </>
+      )}
+
+      {/* All Products Header */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Popular</Text>
-        <TouchableOpacity>
-          <Text style={styles.viewAll}>View all</Text>
-        </TouchableOpacity>
+        <Text style={styles.sectionTitle}>
+          {filters.sortBy ? 'Filtered Results' : 'All Products'}
+        </Text>
+        {filters.sortBy && (
+          <TouchableOpacity onPress={() => setFilters({inStockOnly: false})}>
+            <Text style={styles.viewAll}>Clear Filters</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -321,6 +382,13 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           showsVerticalScrollIndicator={false}
         />
       )}
+
+      <FiltersModal
+        visible={showFilters}
+        onClose={() => setShowFilters(false)}
+        onApply={handleApplyFilters}
+        initialValues={filters}
+      />
     </View>
   );
 };
@@ -489,6 +557,16 @@ const createStyles = (colors: ReturnType<typeof getColors>) =>
       fontSize: 14,
       fontWeight: '600',
       color: colors.primary,
+    },
+
+    /* ── Popular horizontal scroller ── */
+    popularContainer: {
+      paddingHorizontal: spacing.md,
+      paddingBottom: spacing.md,
+    },
+    popularCardWrapper: {
+      width: SCREEN_WIDTH * 0.4,
+      marginRight: spacing.sm,
     },
 
     /* ── Grid ── */

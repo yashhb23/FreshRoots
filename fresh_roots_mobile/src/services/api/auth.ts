@@ -1,5 +1,5 @@
 import apiClient from './client';
-import {ApiResponse, AuthResponse} from '../../types';
+import {ApiResponse, AuthResponse, User} from '../../types';
 
 export interface LoginRequest {
   email: string;
@@ -59,6 +59,22 @@ export const authService = {
   googleAuth: async (data: GoogleAuthRequest) => {
     const response = await apiClient.post<ApiResponse<AuthResponse>>(
       '/auth/google',
+      data,
+    );
+    return response.data;
+  },
+
+  /**
+   * Update delivery location for the authenticated user.
+   */
+  updateLocation: async (data: {
+    delivery_address: string;
+    delivery_district: string;
+    delivery_city: string;
+    delivery_postal_code?: string;
+  }) => {
+    const response = await apiClient.patch<ApiResponse<User>>(
+      '/auth/me/location',
       data,
     );
     return response.data;

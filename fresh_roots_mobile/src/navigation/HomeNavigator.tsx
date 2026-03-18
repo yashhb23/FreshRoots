@@ -8,6 +8,7 @@ import CheckoutScreen from '../screens/main/CheckoutScreen';
 import OrderSuccessScreen from '../screens/main/OrderSuccessScreen';
 import ChatScreen from '../screens/main/ChatScreen';
 import MessagesScreen from '../screens/main/MessagesScreen';
+import EditAddressScreen from '../screens/main/EditAddressScreen';
 
 const Stack = createStackNavigator<HomeStackParamList>();
 
@@ -25,6 +26,7 @@ const HomeNavigator: React.FC = () => {
       <Stack.Screen name="OrderSuccess" component={OrderSuccessScreen} />
       <Stack.Screen name="Chat" component={ChatScreen} />
       <Stack.Screen name="Messages" component={MessagesScreen} />
+      <Stack.Screen name="EditAddress" component={EditAddressScreen} />
     </Stack.Navigator>
   );
 };

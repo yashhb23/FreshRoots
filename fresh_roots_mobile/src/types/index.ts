@@ -16,6 +16,10 @@ export interface User {
   email: string;
   phone?: string;
   role: 'buyer' | 'seller' | 'admin';
+  delivery_address?: string;
+  delivery_district?: string;
+  delivery_city?: string;
+  delivery_postal_code?: string;
   created_at: string;
   updated_at?: string;
 }
@@ -59,6 +63,9 @@ export interface Listing {
   tags: string[];
   images: ListingImage[];
   is_active: boolean;
+  view_count?: number;
+  order_count?: number;
+  popularity_score?: number;
   created_at: string;
   updated_at?: string;
   admin?: {

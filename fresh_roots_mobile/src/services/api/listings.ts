@@ -6,8 +6,10 @@ export interface ListingsQueryParams {
   limit?: number;
   search?: string;
   category?: string;
-  sortBy?: 'price' | 'created_at' | 'title';
-  sortOrder?: 'asc' | 'desc';
+  minPrice?: number;
+  maxPrice?: number;
+  inStockOnly?: boolean;
+  sortBy?: 'price_asc' | 'price_desc' | 'created_desc' | 'popular';
 }
 
 export const listingsService = {
