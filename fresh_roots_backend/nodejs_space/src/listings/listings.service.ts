@@ -38,7 +38,17 @@ export class ListingsService {
   }
 
   async findAll(query: QueryListingsDto) {
-    const { page = 1, limit = 20, category, search, tags } = query;
+    const {
+      page = 1,
+      limit = 20,
+      category,
+      search,
+      tags,
+      minPrice,
+      maxPrice,
+      inStockOnly,
+      sortBy,
+    } = query;
     const skip = (page - 1) * limit;
 
     const where: any = {
@@ -61,6 +71,35 @@ export class ListingsService {
       where.tags = { hasSome: tagArray };
     }
 
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      where.price = {};
+      if (minPrice !== undefined) where.price.gte = minPrice;
+      if (maxPrice !== undefined) where.price.lte = maxPrice;
+    }
+
+    if (inStockOnly) {
+      where.stock = { gt: 0 };
+    }
+
+    let orderBy: any = { created_at: 'desc' };
+    if (sortBy) {
+      switch (sortBy) {
+        case 'price_asc':
+          orderBy = { price: 'asc' };
+          break;
+        case 'price_desc':
+          orderBy = { price: 'desc' };
+          break;
+        case 'created_desc':
+          orderBy = { created_at: 'desc' };
+          break;
+        case 'popular':
+          // Placeholder — will use popularity_score in Phase 2
+          orderBy = { created_at: 'desc' };
+          break;
+      }
+    }
+
     const [listings, total] = await Promise.all([
       this.prisma.listings.findMany({
         where,
@@ -73,7 +112,7 @@ export class ListingsService {
           },
           category: true,
         },
-        orderBy: { created_at: 'desc' },
+        orderBy,
       }),
       this.prisma.listings.count({ where }),
     ]);

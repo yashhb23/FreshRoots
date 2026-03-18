@@ -48,6 +48,15 @@ export class ListingsController {
   @Get()
   @ApiOperation({ summary: 'Get all active listings with filters' })
   @ApiResponse({ status: 200, description: 'List of listings' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 20, max: 100)' })
+  @ApiQuery({ name: 'category', required: false, type: String, description: 'Filter by category UUID' })
+  @ApiQuery({ name: 'search', required: false, type: String, description: 'Full-text search on title and description' })
+  @ApiQuery({ name: 'tags', required: false, type: String, description: 'Comma-separated tag filter (e.g. organic,local)' })
+  @ApiQuery({ name: 'minPrice', required: false, type: Number, description: 'Minimum price filter' })
+  @ApiQuery({ name: 'maxPrice', required: false, type: Number, description: 'Maximum price filter' })
+  @ApiQuery({ name: 'inStockOnly', required: false, type: Boolean, description: 'Only show items with stock > 0' })
+  @ApiQuery({ name: 'sortBy', required: false, enum: ['price_asc', 'price_desc', 'created_desc', 'popular'], description: 'Sort order' })
   async findAll(@Query() query: QueryListingsDto) {
     const result = await this.listingsService.findAll(query);
     return {
