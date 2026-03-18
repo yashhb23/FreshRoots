@@ -124,4 +124,22 @@ export class ListingsController {
       data: result,
     };
   }
+
+  @Post('admin/recalculate-popularity')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.admin)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Recalculate popularity scores for all listings (Admin only)',
+    description: 'Recalculates scores using formula: (orders x 10) + (views x 0.5) + recency_bonus. Run periodically via cron.',
+  })
+  @ApiResponse({ status: 200, description: 'Popularity scores recalculated' })
+  async recalculatePopularity(@CurrentUser() user: JwtPayload) {
+    const result = await this.listingsService.recalculateAllPopularity();
+    return {
+      success: true,
+      message: `Recalculated popularity for ${result.updatedCount} listings`,
+      data: result,
+    };
+  }
 }

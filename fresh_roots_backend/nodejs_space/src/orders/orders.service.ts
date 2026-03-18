@@ -89,7 +89,7 @@ export class OrdersService {
         })),
       });
 
-      // Decrement stock
+      // Decrement stock and update popularity tracking
       for (const item of items) {
         await tx.listings.update({
           where: { id: item.listing_id },
@@ -97,6 +97,10 @@ export class OrdersService {
             stock: {
               decrement: item.quantity,
             },
+            order_count: {
+              increment: 1,
+            },
+            last_ordered_at: new Date(),
           },
         });
       }

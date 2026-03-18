@@ -121,8 +121,14 @@ model listings {
   tags        String[] @default([])
   is_active   Boolean  @default(true)
   admin_id    String
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+
+  // Popularity tracking
+  view_count       Int       @default(0)
+  order_count      Int       @default(0)
+  popularity_score Float     @default(0)
+  last_ordered_at  DateTime?
 
   // Relations
   admin                users                  @relation(fields: [admin_id], references: [id], onDelete: Restrict)
@@ -135,6 +141,7 @@ model listings {
   @@index([category_id])
   @@index([is_active])
   @@index([created_at])
+  @@index([popularity_score])
 }
 
 model listing_images {

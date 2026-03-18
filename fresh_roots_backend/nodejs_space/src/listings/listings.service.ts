@@ -94,8 +94,7 @@ export class ListingsService {
           orderBy = { created_at: 'desc' };
           break;
         case 'popular':
-          // Placeholder — will use popularity_score in Phase 2
-          orderBy = { created_at: 'desc' };
+          orderBy = { popularity_score: 'desc' };
           break;
       }
     }
@@ -130,6 +129,13 @@ export class ListingsService {
   }
 
   async findOne(id: string) {
+    await this.prisma.listings.update({
+      where: { id },
+      data: { view_count: { increment: 1 } },
+    }).catch(() => {
+      // Listing might not exist yet; handled below
+    });
+
     const listing = await this.prisma.listings.findUnique({
       where: { id },
       include: {
@@ -224,5 +230,50 @@ export class ListingsService {
     this.logger.log(`Listing deactivated: ${listing.title} by admin ${adminId}`);
 
     return { message: 'Listing deactivated successfully' };
+  }
+
+  /**
+   * Recalculates popularity_score for every listing.
+   * Formula: (order_count * 10) + (view_count * 0.5) + recency_bonus
+   * Recency bonus: ordered in last 7 days = +10, 8-30 days = +5, else 0.
+   */
+  async recalculateAllPopularity() {
+    const listings = await this.prisma.listings.findMany({
+      select: {
+        id: true,
+        view_count: true,
+        order_count: true,
+        last_ordered_at: true,
+      },
+    });
+
+    const now = new Date();
+    let updatedCount = 0;
+
+    for (const listing of listings) {
+      let score = (listing.order_count * 10) + (listing.view_count * 0.5);
+
+      if (listing.last_ordered_at) {
+        const daysSinceLastOrder = Math.floor(
+          (now.getTime() - listing.last_ordered_at.getTime()) / (1000 * 60 * 60 * 24),
+        );
+
+        if (daysSinceLastOrder <= 7) {
+          score += 10;
+        } else if (daysSinceLastOrder <= 30) {
+          score += 5;
+        }
+      }
+
+      await this.prisma.listings.update({
+        where: { id: listing.id },
+        data: { popularity_score: score },
+      });
+
+      updatedCount++;
+    }
+
+    this.logger.log(`Recalculated popularity for ${updatedCount} listings`);
+    return { updatedCount };
   }
 }
