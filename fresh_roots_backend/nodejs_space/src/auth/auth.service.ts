@@ -311,15 +311,24 @@ export class AuthService {
   }
 
   private async generateTokens(userId: string, email: string, role: string) {
+    const jwtSecret = this.configService.get<string>('JWT_SECRET');
+    const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
+
+    if (!jwtSecret || !refreshSecret) {
+      throw new Error(
+        'JWT_SECRET and JWT_REFRESH_SECRET must be set in environment variables',
+      );
+    }
+
     const payload = { sub: userId, email, role };
 
     const accessTokenOptions = {
-      secret: this.configService.get('JWT_SECRET') || 'rc137',
+      secret: jwtSecret,
       expiresIn: this.configService.get('JWT_EXPIRES_IN') || '15m',
     };
 
     const refreshTokenOptions = {
-      secret: this.configService.get('JWT_REFRESH_SECRET') || 'rc137_refresh',
+      secret: refreshSecret,
       expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN') || '30d',
     };
 
